@@ -1,0 +1,797 @@
+{
+	"$id": "https://hodorraid.org/export-schema.json",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"description": "The movable Anarchy Online bot data",
+	"type": "object",
+	"properties": {
+		"alts": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/altMain"
+			}
+		},
+		"auctions": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/auction"
+			}
+		},
+		"banlist": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/ban"
+			}
+		},
+		"cityCloak": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/cloakEntry"
+			}
+		},
+		"links": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/link"
+			}
+		},
+		"members": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/member"
+			}
+		},
+		"news": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/news"
+			}
+		},
+		"polls": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/poll"
+			}
+		},
+		"quotes": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/quote"
+			}
+		},
+		"raffleBonus": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/raffleBonus"
+			}
+		},
+		"raidBlocks": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/raidBlock"
+			}
+		},
+		"raids": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/raid"
+			}
+		},
+		"raidPoints": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/raidPointEntry"
+			}
+		},
+		"raidPointsLog": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/raidPointLog"
+			}
+		},
+		"timers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/timer"
+			}
+		},
+		"trackedUsers": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/trackedUser"
+			}
+		}
+	},
+	"definitions": {
+		"altMain": {
+			"type": "object",
+			"required": [
+				"name",
+				"alts"
+			],
+			"properties": {
+				"name": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the main character."
+				},
+				"alts": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/altChar"
+					}
+				}
+			}
+		},
+		"altChar": {
+			"type": "object",
+			"required": [
+				"name"
+			],
+			"properties": {
+				"name": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the alt."
+				},
+				"validatedByAlt": {
+					"type": "boolean",
+					"description": "Has the alt agreed to be added as an alt?"
+				},
+				"validatedByMain": {
+					"type": "boolean",
+					"description": "Has the main confirmed that character as their alt?"
+				},
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When was the alt added?"
+				}
+			}
+		},
+		"auction": {
+			"type": "object",
+			"required": [
+				"item"
+			],
+			"properties": {
+				"raidId": {
+					"type": "integer",
+					"description": "The number of the raid during which the item was auctioned.",
+					"minimum": 1
+				},
+				"item": {
+					"type": "string",
+					"description": "The name of the item that was auctioned."
+				},
+				"startedByName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the person auctioning the item."
+				},
+				"timeStart": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the auction start?"
+				},
+				"timeEnd": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the auction end?"
+				},
+				"winnerName": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the winner of the item."
+				},
+				"cost": {
+					"type": "number",
+					"description": "How much did the item go for?"
+				},
+				"reimbursed": {
+					"type": "boolean",
+					"description": "Did the winner get their points back for accidentally winning the auction?"
+				}
+			}
+		},
+		"ban": {
+			"type": "object",
+			"anyOf": [
+				{
+					"required": ["playerId"]
+				},
+				{
+					"required": ["playerName"]
+				}
+			],
+			"properties": {
+				"playerId": {
+					"type": "integer",
+					"description": "The UID of the banned player",
+					"minimum": 1
+				},
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the banned player"
+				},
+				"bannedBy": {
+					"$ref": "#/definitions/player",
+					"description": "Person who issued the ban"
+				},
+				"banStart": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When was the ban issued?"
+				},
+				"banEnd": {
+					"$ref": "#/definitions/timestamp",
+					"description": "If set, this is only a temporary ban and this is the timestamp when it ends."
+				}
+			}
+		},
+		"cloakEntry": {
+			"type": "object",
+			"required": [
+				"cloakOn", "time"
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the player raising or lowering the cloak"
+				},
+				"manualEntry": {
+					"type": "boolean",
+					"description": "Was the cloak manually lower or raised via a bot command? Then true. If this entry came from parsing an org message, then false."
+				},
+				"cloakOn": {
+					"type": "boolean",
+					"description": "Was the cloak raised (true) or lowered (false)?"
+				},
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the event happen?"
+				}
+			}
+		},
+		"link": {
+			"type": "object",
+			"required": ["url"],
+			"properties": {
+				"creatorName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who submitted the URL"
+				},
+				"url": {
+					"type": "string",
+					"description": "The URL of this link"
+				},
+				"description": {
+					"type": "string",
+					"description": "A description what this URL is about"
+				},
+				"creationTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Timestamp of when the links was submitted"
+				}
+			}
+		},
+		"member": {
+			"type": "object",
+			"required": [
+				"playerName", "rank"
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the player"
+				},
+				"autoInvite": {
+					"type": "boolean",
+					"description": "Does this player automatically get invited to this bot's private channel?"
+				},
+				"rank": {
+					"type": "string",
+					"description": "What is the rank of this player on the bot?"
+				},
+				"logonMessage": {
+					"type": "string",
+					"description": "Extra-message to display when the player logs in"
+				},
+				"logoffMessage": {
+					"type": "string",
+					"description": "Extra-message to display when the player logs off"
+				}
+			}
+		},
+		"news": {
+			"type": "object",
+			"required": ["news"],
+			"properties": {
+				"authorName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who posted the news"
+				},
+				"news": {
+					"type": "string",
+					"description": "The news text itself"
+				},
+				"addedTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Timestamp of when the news were posted"
+				},
+				"pinned": {
+					"type": "boolean",
+					"description": "Whether the news are sticke, i.e. pinned to be on top"
+				},
+				"deleted": {
+					"type": "boolean",
+					"description": "Whether the news were deleted"
+				},
+				"confirmedBy": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/newsConfirmation"
+					}
+				}
+			}
+		},
+		"newsConfirmation": {
+			"type": "object",
+			"required": [
+				"playerName"
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the player who confirmed the news"
+				},
+				"confirmationTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Timestamp of when the news were confirmed by that player"
+				}
+			}
+		},
+		"note": {
+			"type": "object",
+			"required": ["text", "ownerName"],
+			"properties": {
+				"ownerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who is considered the owner of this note (usually the main)"
+				},
+				"authorName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who posted the note"
+				},
+				"text": {
+					"type": "string",
+					"description": "The text of the note"
+				},
+				"creationTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Timestamp of when the note was created"
+				}
+			}
+		},
+		"poll": {
+			"type": "object",
+			"required": [
+				"question"
+			],
+			"properties": {
+				"authorName": {
+					"$ref": "#/definitions/player",
+					"description": "The name of the player who created the poll"
+				},
+				"question": {
+					"type": "string",
+					"description": "Which question is asked in the poll?"
+				},
+				"startTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did/does the poll start?"
+				},
+				"endTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did/does the poll end?"
+				},
+				"answers": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/answer"
+					}
+				}
+			}
+		},
+		"answer": {
+			"type": "object",
+			"required": [
+				"answer"
+			],
+			"properties": {
+				"answer": {
+					"type": "string",
+					"description": "The choice for this answer"
+				},
+				"votes": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/vote"
+					}
+				}
+			}
+		},
+		"vote": {
+			"type": "object",
+			"required": [ ],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player voting for this answer"
+				},
+				"voteTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the player vote for this?"
+				}
+			}
+		},
+		"quote": {
+			"type": "object",
+			"required": [ "quote" ],
+			"properties": {
+				"quote": {
+					"type": "string",
+					"description": "The quote"
+				},
+				"contributorName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player contributing this quote"
+				},
+				"channel": {
+					"$ref": "#/definitions/channel",
+					"description": "Channel on which the quote was added"
+				},
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When was the quote contributed?"
+				}
+			}
+		},
+		"raid": {
+			"type": "object",
+			"required": [ ],
+			"properties": {
+				"raidId": {
+					"type": "integer",
+					"description": "The internal raid number, used so it can be referenced by the auctions",
+					"minimum": 1
+				},
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the raid start?"
+				},
+				"raidDescription": {
+					"type": "string",
+					"description": "What was raided?"
+				},
+				"raidLocked": {
+					"type": "boolean",
+					"description": "Is/was the raid locked and only raid leaders were allowed to add raiders?"
+				},
+				"raidAnnounceInterval": {
+					"type": "integer",
+					"minimum":1,
+					"description": "How many seconds between announcing the raid?"
+				},
+				"raidSecondsPerPoint": {
+					"type": "integer",
+					"minimum":1,
+					"description": "If this is set, then raiders are automatically awarded raid points and this is the interval between receiving 1 point."
+				},
+				"raiders": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/raider"
+					},
+					"description": "A list of all raiders who, at one point, were in the raid"
+				},
+				"history": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/raidState"
+					},
+					"description": "A list of all raiders who, at one point, were in the raid"
+				}
+			}
+		},
+		"raidState": {
+			"type": "object",
+			"anyOf": [
+				{ "required": [ "time", "raidDescription" ] },
+				{ "required": [ "time", "raidLocked" ] },
+				{ "required": [ "time", "raidAnnounceInterval" ] },
+				{ "required": [ "time", "raidSecondsPerPoint" ] }
+			],
+			"properties": {
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the raid state change to this?"
+				},
+				"raidDescription": {
+					"type": "string",
+					"description": "What was raided?"
+				},
+				"raidLocked": {
+					"type": "boolean",
+					"description": "Is/was the raid locked and only raid leaders were allowed to add raiders?"
+				},
+				"raidAnnounceInterval": {
+					"type": "integer",
+					"minimum":1,
+					"description": "How many seconds between announcing the raid?"
+				},
+				"raidSecondsPerPoint": {
+					"type": ["integer", "null"],
+					"minimum":1,
+					"description": "If this is set, then raiders are automatically awarded raid points and this is the interval between receiving 1 point. If this is null, then the ticker is explicitely set off."
+				}
+			}
+		},
+		"raider": {
+			"type": "object",
+			"required": [ "playerName" ],
+			"properties": {
+				"joinTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the player join the raid?"
+				},
+				"leaveTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When did the player leave the raid?"
+				},
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the raider"
+				}
+			}
+		},
+		"raidPointEntry": {
+			"type": "object",
+			"anyOf": [
+				{
+					"required": ["playerId", "raidPoints"]
+				},
+				{
+					"required": ["playerName", "raidPoints"]
+				}
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player with raid points"
+				},
+				"playerId": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "UserId of the player with raid points"
+				},
+				"raidPoints": {
+					"type": "number",
+					"description": "How many raid points does the player have?"
+				}
+			}
+		},
+		"raidPointLog": {
+			"type": "object",
+			"required": [
+				"playerName",
+				"raidPoints"
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who got or lost raid points"
+				},
+				"raidPoints": {
+					"type": "number",
+					"description": "How many raid points given or taken"
+				},
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when the change occurred"
+				},
+				"givenByName": {
+					"$ref": "#/definitions/player",
+					"description": "Who gave the raid points?"
+				},
+				"reason": {
+					"type": "string",
+					"description": "Why were the raid points given?"
+				},
+				"givenByTick": {
+					"type": "boolean",
+					"description": "True if the raidpoints were automatically given for raid participation"
+				},
+				"givenIndividually": {
+					"type": "boolean",
+					"description": "True if these points were given to only this player, false if to the whole raidforce"
+				},
+				"raidId": {
+					"type": "integer",
+					"description": "If these points were given during a raid, this is the raid's ID",
+					"minimum": 1
+				}
+			}
+		},
+		"timer": {
+			"type": "object",
+			"required": [
+				"endTime"
+			],
+			"properties": {
+				"startTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when the timer was created"
+				},
+				"endTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when the timer needs to go off"
+				},
+				"timerName": {
+					"type": "string",
+					"description": "Name of the timer, used to refer to it"
+				},
+				"createdByName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who created the timer"
+				},
+				"channels": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/channel"
+					}
+				},
+				"repeatInterval": {
+					"type": "integer",
+					"minimum": 1,
+					"description": "If this is a repeating timer, then set this to the number of seconds between each repeat"
+				},
+				"alerts": {
+					"type": "array",
+					"description": "Alerts that need to be fired by this alarm. If these are set, then endTime doesn't trigger an alarm by itself, but requires the endTime alert to be an own alert",
+					"items": {
+						"$ref": "#/definitions/alert"
+					}
+				}
+			}
+		},
+		"alert": {
+			"type": "object",
+			"required": ["time"],
+			"properties": {
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time for this alert to occur"
+				},
+				"message": {
+					"type": "string",
+					"description": "Message to show when this alert is due"
+				}
+			}
+		},
+		"trackedUser": {
+			"type": "object",
+			"anyOf": [
+				{
+					"required": ["playerId"]
+				},
+				{
+					"required": ["playerName"]
+				}
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player we are tracking"
+				},
+				"playerId": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "UserId of the player we are tracking"
+				},
+				"addedTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when we started tracking this player"
+				},
+				"addedbyName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player who added this player to the tracking list"
+				},
+				"events": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/trackerEvent"
+					}
+				}
+			}
+		},
+		"trackerEvent": {
+			"type": "object",
+			"required": ["time", "event"],
+			"properties": {
+				"time": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when this event happened"
+				},
+				"event": {
+					"type": "string",
+					"description": "What exactly happened on this event?"
+				}
+			}
+		},
+		"raffleBonus": {
+			"type": "object",
+			"required": ["playerName", "rafflebonus"],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player with a raffle bonus"
+				},
+				"raffleBonus": {
+					"type": "number",
+					"description": "The bonus (or malus) to apply to the next raffle roll"
+				}
+			}
+		},
+		"raidBlock": {
+			"type": "object",
+			"anyOf": [
+				{
+					"required": ["playerId", "blockedFrom"]
+				},
+				{
+					"required": ["playerName", "blockedFrom"]
+				}
+			],
+			"properties": {
+				"playerName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the player being blocked from parts of raiding"
+				},
+				"playerId": {
+					"type": "integer",
+					"minimum": 0,
+					"description": "UserId of the player being blocked from parts of raiding"
+				},
+				"blockedFrom": {
+					"$ref": "#/definitions/raidBlockType",
+					"description": "What is disallowed for the blocked player?"
+				},
+				"blockedByName": {
+					"$ref": "#/definitions/player",
+					"description": "Name of the person who issued the ban"
+				},
+				"blockedReason": {
+					"type": "string",
+					"description": "The reason for this block"
+				},
+				"blockStart": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When was the block issued?"
+				},
+				"blockEnd": {
+					"$ref": "#/definitions/timestamp",
+					"description": "If the block is temporary, set this to when the block expires"
+				}
+			}
+		},
+		"channel": {
+			"type": "string",
+			"enum": ["tell", "org", "priv", "discord", "irc"]
+		},
+		"raidBlockType": {
+			"type": "string",
+			"enum": ["points", "join", "bid"]
+		},
+		"player": {
+			"type": "string",
+			"pattern": "^[A-Z][a-z0-9-]{3,11}$"
+		},
+		"timestamp": {
+			"type": "integer",
+			"minimum": 0,
+			"maximum": 2147483647
+		}
+	}
+}
