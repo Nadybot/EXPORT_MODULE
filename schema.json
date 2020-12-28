@@ -94,24 +94,21 @@
 				"$ref": "#/definitions/timer"
 			}
 		},
-		"trackedUsers": {
+		"trackedCharacters": {
 			"type": "array",
 			"items": {
-				"$ref": "#/definitions/trackedUser"
+				"$ref": "#/definitions/trackedCharacter"
 			}
 		}
 	},
 	"definitions": {
 		"altMain": {
 			"type": "object",
-			"required": [
-				"name",
-				"alts"
-			],
+			"required": ["main", "alts"],
 			"properties": {
-				"name": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the main character."
+				"main": {
+					"$ref": "#/definitions/character",
+					"description": "The main character."
 				},
 				"alts": {
 					"type": "array",
@@ -123,13 +120,11 @@
 		},
 		"altChar": {
 			"type": "object",
-			"required": [
-				"name"
-			],
+			"required": ["alt"],
 			"properties": {
-				"name": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the alt."
+				"alt": {
+					"$ref": "#/definitions/character",
+					"description": "The alt character."
 				},
 				"validatedByAlt": {
 					"type": "boolean",
@@ -160,9 +155,9 @@
 					"type": "string",
 					"description": "The name of the item that was auctioned."
 				},
-				"startedByName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the person auctioning the item."
+				"startedBy": {
+					"$ref": "#/definitions/character",
+					"description": "The person auctioning the item."
 				},
 				"timeStart": {
 					"$ref": "#/definitions/timestamp",
@@ -172,9 +167,9 @@
 					"$ref": "#/definitions/timestamp",
 					"description": "When did the auction end?"
 				},
-				"winnerName": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the winner of the item."
+				"winner": {
+					"$ref": "#/definitions/character",
+					"description": "The winner of the item."
 				},
 				"cost": {
 					"type": "number",
@@ -188,26 +183,14 @@
 		},
 		"ban": {
 			"type": "object",
-			"anyOf": [
-				{
-					"required": ["playerId"]
-				},
-				{
-					"required": ["playerName"]
-				}
-			],
+			"required": ["character"],
 			"properties": {
-				"playerId": {
-					"type": "integer",
-					"description": "The UID of the banned player",
-					"minimum": 1
-				},
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the banned player"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The banned character"
 				},
 				"bannedBy": {
-					"$ref": "#/definitions/player",
+					"$ref": "#/definitions/character",
 					"description": "Person who issued the ban"
 				},
 				"banStart": {
@@ -226,9 +209,9 @@
 				"cloakOn", "time"
 			],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the player raising or lowering the cloak"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character raising or lowering the cloak"
 				},
 				"manualEntry": {
 					"type": "boolean",
@@ -248,9 +231,9 @@
 			"type": "object",
 			"required": ["url"],
 			"properties": {
-				"creatorName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who submitted the URL"
+				"createdBy": {
+					"$ref": "#/definitions/character",
+					"description": "The character who submitted the URL"
 				},
 				"url": {
 					"type": "string",
@@ -269,28 +252,28 @@
 		"member": {
 			"type": "object",
 			"required": [
-				"playerName", "rank"
+				"character", "rank"
 			],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the player"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character"
 				},
 				"autoInvite": {
 					"type": "boolean",
-					"description": "Does this player automatically get invited to this bot's private channel?"
+					"description": "Does this character automatically get invited to this bot's private channel?"
 				},
 				"rank": {
 					"type": "string",
-					"description": "What is the rank of this player on the bot?"
+					"description": "What is the rank of this character on the bot?"
 				},
 				"logonMessage": {
 					"type": "string",
-					"description": "Extra-message to display when the player logs in"
+					"description": "Extra-message to display when the character logs in"
 				},
 				"logoffMessage": {
 					"type": "string",
-					"description": "Extra-message to display when the player logs off"
+					"description": "Extra-message to display when the character logs off"
 				}
 			}
 		},
@@ -298,9 +281,9 @@
 			"type": "object",
 			"required": ["news"],
 			"properties": {
-				"authorName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who posted the news"
+				"author": {
+					"$ref": "#/definitions/character",
+					"description": "The character who posted the news"
 				},
 				"news": {
 					"type": "string",
@@ -328,31 +311,29 @@
 		},
 		"newsConfirmation": {
 			"type": "object",
-			"required": [
-				"playerName"
-			],
+			"required": [ "character" ],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the player who confirmed the news"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character who confirmed the news"
 				},
 				"confirmationTime": {
 					"$ref": "#/definitions/timestamp",
-					"description": "Timestamp of when the news were confirmed by that player"
+					"description": "Timestamp of when the news were confirmed by that character"
 				}
 			}
 		},
 		"note": {
 			"type": "object",
-			"required": ["text", "ownerName"],
+			"required": [ "text", "owner" ],
 			"properties": {
-				"ownerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who is considered the owner of this note (usually the main)"
+				"owner": {
+					"$ref": "#/definitions/character",
+					"description": "The character who is considered the owner of this note (usually the main)"
 				},
-				"authorName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who posted the note"
+				"author": {
+					"$ref": "#/definitions/character",
+					"description": "The character who posted the note"
 				},
 				"text": {
 					"type": "string",
@@ -370,9 +351,9 @@
 				"question"
 			],
 			"properties": {
-				"authorName": {
-					"$ref": "#/definitions/player",
-					"description": "The name of the player who created the poll"
+				"author": {
+					"$ref": "#/definitions/character",
+					"description": "The character who created the poll"
 				},
 				"question": {
 					"type": "string",
@@ -416,13 +397,13 @@
 			"type": "object",
 			"required": [ ],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player voting for this answer"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character voting for this answer"
 				},
 				"voteTime": {
 					"$ref": "#/definitions/timestamp",
-					"description": "When did the player vote for this?"
+					"description": "When did the character vote for this?"
 				}
 			}
 		},
@@ -434,9 +415,9 @@
 					"type": "string",
 					"description": "The quote"
 				},
-				"contributorName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player contributing this quote"
+				"contributor": {
+					"$ref": "#/definitions/character",
+					"description": "The character contributing this quote"
 				},
 				"channel": {
 					"$ref": "#/definitions/channel",
@@ -530,58 +511,43 @@
 		},
 		"raider": {
 			"type": "object",
-			"required": [ "playerName" ],
+			"required": [ "character" ],
 			"properties": {
 				"joinTime": {
 					"$ref": "#/definitions/timestamp",
-					"description": "When did the player join the raid?"
+					"description": "When did the character join the raid?"
 				},
 				"leaveTime": {
 					"$ref": "#/definitions/timestamp",
-					"description": "When did the player leave the raid?"
+					"description": "When did the character leave the raid?"
 				},
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the raider"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The raider"
 				}
 			}
 		},
 		"raidPointEntry": {
 			"type": "object",
-			"anyOf": [
-				{
-					"required": ["playerId", "raidPoints"]
-				},
-				{
-					"required": ["playerName", "raidPoints"]
-				}
-			],
+			"required": ["character", "raidPoints"],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player with raid points"
-				},
-				"playerId": {
-					"type": "integer",
-					"minimum": 0,
-					"description": "UserId of the player with raid points"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character with raid points"
 				},
 				"raidPoints": {
 					"type": "number",
-					"description": "How many raid points does the player have?"
+					"description": "How many raid points does the character have?"
 				}
 			}
 		},
 		"raidPointLog": {
 			"type": "object",
-			"required": [
-				"playerName",
-				"raidPoints"
-			],
+			"required": [ "character", "raidPoints" ],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who got or lost raid points"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character who got or lost raid points"
 				},
 				"raidPoints": {
 					"type": "number",
@@ -591,8 +557,8 @@
 					"$ref": "#/definitions/timestamp",
 					"description": "Time when the change occurred"
 				},
-				"givenByName": {
-					"$ref": "#/definitions/player",
+				"givenBy": {
+					"$ref": "#/definitions/character",
 					"description": "Who gave the raid points?"
 				},
 				"reason": {
@@ -605,7 +571,7 @@
 				},
 				"givenIndividually": {
 					"type": "boolean",
-					"description": "True if these points were given to only this player, false if to the whole raidforce"
+					"description": "True if these points were given to only this character, false if to the whole raidforce"
 				},
 				"raidId": {
 					"type": "integer",
@@ -632,9 +598,9 @@
 					"type": "string",
 					"description": "Name of the timer, used to refer to it"
 				},
-				"createdByName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who created the timer"
+				"createdBy": {
+					"$ref": "#/definitions/character",
+					"description": "The character who created the timer"
 				},
 				"channels": {
 					"type": "array",
@@ -670,33 +636,21 @@
 				}
 			}
 		},
-		"trackedUser": {
+		"trackedCharacter": {
 			"type": "object",
-			"anyOf": [
-				{
-					"required": ["playerId"]
-				},
-				{
-					"required": ["playerName"]
-				}
-			],
+			"required": ["character"],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player we are tracking"
-				},
-				"playerId": {
-					"type": "integer",
-					"minimum": 0,
-					"description": "UserId of the player we are tracking"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character we are tracking"
 				},
 				"addedTime": {
 					"$ref": "#/definitions/timestamp",
-					"description": "Time when we started tracking this player"
+					"description": "Time when we started tracking this character"
 				},
-				"addedbyName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player who added this player to the tracking list"
+				"addedBy": {
+					"$ref": "#/definitions/character",
+					"description": "The character who added this character to the tracking list"
 				},
 				"events": {
 					"type": "array",
@@ -722,11 +676,11 @@
 		},
 		"raffleBonus": {
 			"type": "object",
-			"required": ["playerName", "rafflebonus"],
+			"required": [ "character", "raffleBonus" ],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player with a raffle bonus"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character with a raffle bonus"
 				},
 				"raffleBonus": {
 					"type": "number",
@@ -736,31 +690,19 @@
 		},
 		"raidBlock": {
 			"type": "object",
-			"anyOf": [
-				{
-					"required": ["playerId", "blockedFrom"]
-				},
-				{
-					"required": ["playerName", "blockedFrom"]
-				}
-			],
+			"required": ["character", "blockedFrom"],
 			"properties": {
-				"playerName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the player being blocked from parts of raiding"
-				},
-				"playerId": {
-					"type": "integer",
-					"minimum": 0,
-					"description": "UserId of the player being blocked from parts of raiding"
+				"character": {
+					"$ref": "#/definitions/character",
+					"description": "The character being blocked from parts of raiding"
 				},
 				"blockedFrom": {
 					"$ref": "#/definitions/raidBlockType",
-					"description": "What is disallowed for the blocked player?"
+					"description": "What is disallowed for the blocked character?"
 				},
-				"blockedByName": {
-					"$ref": "#/definitions/player",
-					"description": "Name of the person who issued the ban"
+				"blockedBy": {
+					"$ref": "#/definitions/character",
+					"description": "The character who issued the ban"
 				},
 				"blockedReason": {
 					"type": "string",
@@ -784,9 +726,34 @@
 			"type": "string",
 			"enum": ["points", "join", "bid"]
 		},
-		"player": {
+		"characterName": {
 			"type": "string",
 			"pattern": "^[A-Z][a-z0-9-]{3,11}$"
+		},
+		"characterId": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"character": {
+			"type": "object",
+			"anyOf": [
+				{
+					"required": [ "name" ]
+				},
+				{
+					"required": [ "id" ]
+				}
+			],
+			"properties": {
+				"name": {
+					"$ref": "#/definitions/characterName",
+					"description": "The name of this character"
+				},
+				"id": {
+					"$ref": "#/definitions/characterId",
+					"description": "The user Id of this character"
+				}
+			}
 		},
 		"timestamp": {
 			"type": "integer",
