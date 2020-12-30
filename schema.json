@@ -193,6 +193,10 @@
 					"$ref": "#/definitions/character",
 					"description": "Person who issued the ban"
 				},
+				"banReason": {
+					"type": "string",
+					"description": "Reason for the ban"
+				},
 				"banStart": {
 					"$ref": "#/definitions/timestamp",
 					"description": "When was the ban issued?"
@@ -295,7 +299,7 @@
 				},
 				"pinned": {
 					"type": "boolean",
-					"description": "Whether the news are sticke, i.e. pinned to be on top"
+					"description": "Whether the news are sticky, i.e. pinned to be on top"
 				},
 				"deleted": {
 					"type": "boolean",

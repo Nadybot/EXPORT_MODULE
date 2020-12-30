@@ -10,6 +10,7 @@ use Nadybot\Core\DBSchema\Alt;
 use Nadybot\Core\DBSchema\Member;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\Nadybot;
+use Nadybot\Core\ProxyCapabilities;
 use Nadybot\Modules\GUILD_MODULE\OrgMember;
 use Nadybot\Modules\NEWS_MODULE\News;
 use Nadybot\Modules\NOTES_MODULE\Link;
@@ -76,6 +77,15 @@ class ExportController {
 		if (!@file_exists("data/export")) {
 			@mkdir("data/export", 0700);
 		}
+		if (($this->chatBot->vars["use_proxy"] ?? 0) == 1) {
+			if (!$this->chatBot->proxyCapabilities->supportsBuddyMode(ProxyCapabilities::SEND_BY_WORKER)) {
+				$sendto->reply(
+					"You are using an unsupported proxy version. ".
+					"Please upgrade to the latest AOChatProxy and try again."
+				);
+				return;
+			}
+		}
 		$sendto->reply("Starting export...");
 		$exports = new stdClass();
 		$exports->alts = $this->exportAlts();
@@ -107,6 +117,15 @@ class ExportController {
 		$sendto->reply("The export was successfully saved in {$fileName}.");
 	}
 
+	protected function toChar(?string $name, ?int $uid=null): Character {
+		$char = new Character();
+		if (isset($name)) {
+			$char->name = $name;
+		}
+		$char->id = $uid ?? $this->chatBot->get_uid($name);
+		return $char;
+	}
+
 	protected function exportAlts(): array {
 		/** @var Alt[] */
 		$alts = $this->db->fetchAll(Alt::class, "SELECT * FROM alts");
@@ -117,14 +136,17 @@ class ExportController {
 			}
 			$data[$alt->main] ??= [];
 			$data[$alt->main] []= (object)[
-				"name" => $alt->alt,
+				"alt" => $this->toChar($alt->alt),
 				"validatedByMain" => (bool)($alt->validated_by_main ?? true),
 				"validatedByAlt" => (bool)($alt->validated_by_alt ?? true),
 			];
 		}
 		$result = [];
 		foreach ($data as $main => $altInfo) {
-			$result []= (object)["name" => $main, "alts" => $altInfo];
+			$result []= (object)[
+				"main" => $this->toChar($main),
+				"alts" => $altInfo
+			];
 		}
 		return $result;
 	}
@@ -139,7 +161,7 @@ class ExportController {
 				$needSuperadmin = false;
 			}
 			$result []= (object)[
-				"playerName" => $member->name,
+				"character" =>$this->toChar($member->name),
 				"autoInvite" => (bool)$member->autoinv,
 			];
 		}
@@ -149,21 +171,21 @@ class ExportController {
 				$needSuperadmin = false;
 			}
 			$result []= (object)[
-				"playerName" => $member->name,
+				"character" =>$this->toChar($member->name),
 				"autoInvite" => false,
 			];
 		}
 		if ($needSuperadmin) {
 			$result []= (object)[
-				"playerName" => $this->chatBot->vars["SuperAdmin"],
+				"character" => $this->toChar($this->chatBot->vars["SuperAdmin"]),
 				"autoInvite" => false,
 				"rank" => "superadmin",
 			];
 		}
 		foreach ($result as &$datum) {
-			$datum->rank ??= $this->accessManager->getSingleAccessLevel($datum->playerName);
-			$logonMessage = $this->preferences->get($datum->playerName, "logon_msg");
-			$logoffMessage = $this->preferences->get($datum->playerName, "logoff_msg");
+			$datum->rank ??= $this->accessManager->getSingleAccessLevel($datum->characterName);
+			$logonMessage = $this->preferences->get($datum->character->name, "logon_msg");
+			$logoffMessage = $this->preferences->get($datum->character->name, "logoff_msg");
 			if (!empty($logonMessage)) {
 				$datum->logonMessage ??= $logonMessage;
 			}
@@ -182,7 +204,7 @@ class ExportController {
 			$result []= (object)[
 				"quote" => $quote->msg,
 				"time" => $quote->dt,
-				"contributorName" => $quote->poster,
+				"contributor" => $this->toChar($quote->poster),
 			];
 		}
 		return $result;
@@ -193,9 +215,9 @@ class ExportController {
 		$result = [];
 		foreach ($banList as $banEntry) {
 			$ban = (object)[
-				"playerId" => $banEntry->charid,
+				"character" => $this->toChar($this->chatBot->lookupID($banEntry->charid), $banEntry->charid),
+				"bannedBy" => $this->toChar($banEntry->admin),
 				"banReason" => $banEntry->reason,
-				"bannedBy" => $banEntry->admin,
 				"banStart" => $banEntry->time,
 			];
 			if (isset($banEntry->banend) && $banEntry->banend > 0) {
@@ -211,7 +233,7 @@ class ExportController {
 		$result = [];
 		foreach ($cloakList as $cloakEntry) {
 			$result []= (object)[
-				"playerName" => preg_replace("/\*$/", "", $cloakEntry->player),
+				"character" =>$this->toChar(preg_replace("/\*$/", "", $cloakEntry->player)),
 				"manualEntry" => (bool)preg_match("/\*$/", $cloakEntry->player),
 				"cloakOn" => ($cloakEntry->action === "on"),
 				"time" => $cloakEntry->time,
@@ -226,7 +248,7 @@ class ExportController {
 		$result = [];
 		foreach ($polls as $poll) {
 			$export = (object)[
-				"authorName" => $poll->author,
+				"author" =>$this->toChar($poll->author),
 				"question" => $poll->question,
 				"answers" => [],
 				"startTime" => $poll->started,
@@ -247,7 +269,7 @@ class ExportController {
 					"votes" => [],
 				];
 				$answers[$vote->answer]->votes []= (object)[
-					"playerName" => $vote->author,
+					"character" =>$this->toChar($vote->author),
 					"voteTime" => $vote->time,
 				];
 			}
@@ -262,7 +284,7 @@ class ExportController {
 		$result = [];
 		foreach ($data as $bonus) {
 			$result []= (object)[
-				"playerName" => $bonus->name,
+				"character" => $this->toChar($bonus->name),
 				"raffleBonus" => $bonus->bonus,
 			];
 		}
@@ -275,9 +297,9 @@ class ExportController {
 		$result = [];
 		foreach ($data as $block) {
 			$entry = (object)[
-				"playerName" => $block->name,
+				"character" => $this->toChar($block->name),
 				"blockedFrom" => $block->blocked_from,
-				"blockedByName" => $block->blocked_by,
+				"blockedBy" => $this->toChar($block->blocked_by),
 				"blockReason" => $block->reason,
 				"blockStart" => $block->time,
 			];
@@ -322,7 +344,7 @@ class ExportController {
 		$data = $this->db->fetchAll(RaidMember::class, "SELECT * FROM `raid_member_<myname>`");
 		foreach ($data as $raidMember) {
 			$raids[$raidMember->raid_id]->raiders []= (object)[
-				"playerName" => $raidMember->player,
+				"character" => $this->toChar($raidMember->player),
 				"joinTime" => $raidMember->joined,
 				"leaveTime" => $raidMember->left,
 			];
@@ -336,7 +358,7 @@ class ExportController {
 		$result = [];
 		foreach ($data as $datum) {
 			$result []= (object)[
-				"playerName" => $datum->username,
+				"character" => $this->toChar($datum->username),
 				"raidPoints" => $datum->points,
 			];
 		}
@@ -349,10 +371,10 @@ class ExportController {
 		$result = [];
 		foreach ($data as $datum) {
 			$raidLog = (object)[
-				"playerName" => $datum->username,
+				"character" => $this->toChar($datum->username),
 				"raidPoints" => (float)$datum->delta,
 				"time" => $datum->time,
-				"givenByName" => $datum->changed_by,
+				"givenBy" => $this->toChar($datum->changed_by),
 				"reason" => $datum->reason,
 				"givenByTick" => (bool)$datum->ticker,
 				"givenIndividually" => (bool)$datum->individual,
@@ -378,7 +400,7 @@ class ExportController {
 				"startTime" => $timer->settime,
 				"timerName" => $timer->name,
 				"endTime" => $timer->endtime,
-				"createdByName" => $timer->owner,
+				"createdBy" => $this->toChar($timer->owner),
 				"channels" => explode(",", str_replace(["guild", "both", "msg"], ["org", "priv,org", "tell"], $timer->mode)),
 				"alerts" => [],
 			];
@@ -406,10 +428,9 @@ class ExportController {
 		$result = [];
 		foreach ($users as $user) {
 			$result[$user->uid] = (object)[
-				"playerName" => $user->name,
-				"playerId" => $user->uid,
+				"character" => $this->toChar($user->name, $user->uid),
 				"addedTime" => $user->added_dt,
-				"addedByName" => $user->added_by,
+				"addedBy" => $this->toChar($user->added_by),
 				"events" => [],
 			];
 		}
@@ -435,9 +456,9 @@ class ExportController {
 		foreach ($auctions as $auction) {
 			$auctionObj = (object)[
 				"item" => $auction->item,
-				"startedByName" => $auction->auctioneer,
+				"startedBy" => $this->toChar($auction->auctioneer),
 				"timeEnd" => $auction->end,
-				"winnerName" => $auction->winner,
+				"winner" => $this->toChar($auction->winner),
 				"cost" => (float)$auction->bid,
 				"reimbursed" => (bool)$auction->reimbursed
 			];
@@ -455,7 +476,7 @@ class ExportController {
 		$result = [];
 		foreach ($news as $topic) {
 			$data = (object)[
-				"authorName" => $topic->name,
+				"author" => $this->toChar($topic->name),
 				"addedTime" => $topic->time,
 				"news" => $topic->news,
 				"pinned" => $topic->sticky,
@@ -465,7 +486,7 @@ class ExportController {
 			$confirmations = $this->db->query("SELECT * FROM `news_confirmed` WHERE `id`=?", $topic->id);
 			foreach ($confirmations as $confirmation) {
 				$data->confirmedBy []= (object)[
-					"playerName" => $confirmation->player,
+					"character" => $this->toChar($confirmation->player),
 					"confirmationTime" => $confirmation->time,
 				];
 			}
@@ -480,8 +501,8 @@ class ExportController {
 		$result = [];
 		foreach ($notes as $note) {
 			$data = (object)[
-				"ownerName" => $note->owner,
-				"authorName" => $note->added_by,
+				"owner" => $this->toChar($note->owner),
+				"author" => $this->toChar($note->added_by),
 				"creationTime" => $note->dt,
 				"text" => $note->note,
 			];
@@ -496,7 +517,7 @@ class ExportController {
 		$result = [];
 		foreach ($links as $link) {
 			$data = (object)[
-				"creatorName" => $link->name,
+				"creator" => $this->toChar($link->name),
 				"creationTime" => $link->dt,
 				"url" => $link->website,
 				"description" => $link->comments,
