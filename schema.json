@@ -363,6 +363,10 @@
 					"type": "string",
 					"description": "Which question is asked in the poll?"
 				},
+				"minRankToVote": {
+					"type": "string",
+					"description": "If set, then only characters with this rank or higher are allowed to vote"
+				},
 				"startTime": {
 					"$ref": "#/definitions/timestamp",
 					"description": "When did/does the poll start?"
