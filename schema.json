@@ -269,15 +269,23 @@
 				},
 				"rank": {
 					"type": "string",
-					"description": "What is the rank of this character on the bot?"
+					"description": "What is the rank/access level of this character on the bot?"
 				},
 				"logonMessage": {
 					"type": "string",
-					"description": "Extra-message to display when the character logs in"
+					"description": "Extra-message to display when the character logs on"
 				},
 				"logoffMessage": {
 					"type": "string",
 					"description": "Extra-message to display when the character logs off"
+				},
+				"receiveMassMessages": {
+					"type": "boolean",
+					"description": "Does the character want to receive mass messages?"
+				},
+				"receiveMassInvites": {
+					"type": "boolean",
+					"description": "Does the character want to receive mass invites?"
 				}
 			}
 		},
@@ -513,7 +521,7 @@
 				"raidSecondsPerPoint": {
 					"type": ["integer", "null"],
 					"minimum":1,
-					"description": "If this is set, then raiders are automatically awarded raid points and this is the interval between receiving 1 point. If this is null, then the ticker is explicitely set off."
+					"description": "If this is set, then raiders are automatically awarded raid points and this is the interval between receiving 1 point. If this is null, then the ticker is explicitly set off."
 				}
 			}
 		},
