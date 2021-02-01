@@ -11,6 +11,8 @@ use Nadybot\Core\DBSchema\Member;
 use Nadybot\Core\Modules\PREFERENCES\Preferences;
 use Nadybot\Core\Nadybot;
 use Nadybot\Core\ProxyCapabilities;
+use Nadybot\Modules\COMMENT_MODULE\Comment;
+use Nadybot\Modules\COMMENT_MODULE\CommentCategory;
 use Nadybot\Modules\GUILD_MODULE\OrgMember;
 use Nadybot\Modules\NEWS_MODULE\News;
 use Nadybot\Modules\NOTES_MODULE\Link;
@@ -92,6 +94,8 @@ class ExportController {
 		$exports->auctions = $this->exportAuctions();
 		$exports->banlist = $this->exportBanlist();
 		$exports->cityCloak = $this->exportCloak();
+		$exports->commentCategories = $this->exportCommentCategories();
+		$exports->comments = $this->exportComments();
 		$exports->links = $this->exportLinks();
 		$exports->members = $this->exportMembers();
 		$exports->news = $this->exportNews();
@@ -521,6 +525,41 @@ class ExportController {
 				"creationTime" => $link->dt,
 				"url" => $link->website,
 				"description" => $link->comments,
+			];
+			$result []= $data;
+		}
+		return $result;
+	}
+
+	protected function exportCommentCategories(): array {
+		/** @var CommentCategory[] */
+		$categories = $this->db->fetchAll(CommentCategory::class, "SELECT * FROM `<table:comment_categories>`");
+		$result = [];
+		foreach ($categories as $category) {
+			$data = (object)[
+				"name" => $category->name,
+				"createdBy" => $this->toChar($category->created_by),
+				"createdAt" => $category->created_at,
+				"minRankToRead" => $category->min_al_read,
+				"minRankToWrite" => $category->min_al_write,
+				"systemEntry" => !$category->user_managed,
+			];
+			$result []= $data;
+		}
+		return $result;
+	}
+
+	protected function exportComments(): array {
+		/** @var Comment[] */
+		$comments = $this->db->fetchAll(Comment::class, "SELECT * FROM `<table:comments>`");
+		$result = [];
+		foreach ($comments as $comment) {
+			$data = (object)[
+				"comment" => $comment->comment,
+				"targetCharacter" => $this->toChar($comment->character),
+				"createdBy" => $this->toChar($comment->created_by),
+				"createdAt" => $comment->created_at,
+				"category" => $comment->category,
 			];
 			$result []= $data;
 		}

@@ -1,0 +1,13 @@
+name = "EXPORT_MODULE"
+description = "Export and import bot data to and from different bots"
+version = "0.1.0"
+author = "Nadyita"
+github = "Nadybot/EXPORT_MODULE"
+bot_type = "Nadybot"
+bot_version = "^5.0.0-rc.5"
+
+[requires]
+ext-Reflection = "*"
+ext-pcre = "*"
+ext-date = "*"
+ext-json = "*"

@@ -13,11 +13,12 @@ use Nadybot\Core\{
 	LoggerWrapper,
 	Modules\PREFERENCES\Preferences,
 	Nadybot,
-	ProxyCapabilities,
 	SettingManager,
 	SQLException,
 };
 use Nadybot\Modules\{
+	COMMENT_MODULE\CommentCategory,
+	COMMENT_MODULE\CommentController,
 	RAID_MODULE\Raid,
 	RAID_MODULE\RaidLog,
 	RAID_MODULE\RaidMember,
@@ -28,6 +29,7 @@ use Nadybot\Modules\{
 	VOTE_MODULE\VoteController,
 };
 use Exception;
+use Nadybot\Modules\COMMENT_MODULE\Comment;
 use Throwable;
 
 /**
@@ -68,6 +70,9 @@ class ImportController {
 
 	/** @Inject */
 	public SettingManager $settingManager;
+
+	/** @Inject */
+	public CommentController $commentController;
 
 	protected function loadAndParseExportFile(string $fileName, CommandReply $sendto): ?object {
 		if (!@file_exists($fileName)) {
@@ -132,59 +137,40 @@ class ImportController {
 		}
 		$this->logger->log("INFO", "Starting import");
 		$sendto->reply("Starting import...");
-		if (isset($import->alts)) {
-			$this->importAlts($import->alts);
-		}
-		if (isset($import->auctions)) {
-			$this->importAuctions($import->auctions);
-		}
-		if (isset($import->banlist)) {
-			$this->importBanlist($import->banlist);
-		}
-		if (isset($import->cityCloak)) {
-			$this->importCloak($import->cityCloak);
-		}
-		if (isset($import->links)) {
-			$this->importLinks($import->links);
-		}
-		if (isset($import->members)) {
-			$this->importMembers($import->members, $rankMapping);
-		}
-		if (isset($import->news)) {
-			$this->importNews($import->news);
-		}
-		if (isset($import->notes)) {
-			$this->importNotes($import->notes);
-		}
-		if (isset($import->polls)) {
-			$this->importPolls($import->polls);
-		}
-		if (isset($import->quotes)) {
-			$this->importQuotes($import->quotes);
-		}
-		if (isset($import->raffleBonus)) {
-			$this->importRaffleBonus($import->raffleBonus);
-		}
-		if (isset($import->raidBlocks)) {
-			$this->importRaidBlocks($import->raidBlocks);
-		}
-		if (isset($import->raids)) {
-			$this->importRaids($import->raids);
-		}
-		if (isset($import->raidPoints)) {
-			$this->importRaidPoints($import->raidPoints);
-		}
-		if (isset($import->raidPointsLog)) {
-			$this->importRaidPointsLog($import->raidPointsLog);
-		}
-		if (isset($import->timers)) {
-			$this->importTimers($import->timers);
-		}
-		if (isset($import->trackedCharacters)) {
-			$this->importTrackedUsers($import->trackedCharacters);
+		$importMap = $this->getImportMapping();
+		foreach ($importMap as $key => $func) {
+			if (!isset($import->{$key})) {
+				continue;
+			}
+			$func($import->{$key}, $rankMapping);
 		}
 		$this->logger->log("INFO", "Import done");
 		$sendto->reply("The import finished successfully.");
+	}
+
+	protected function getImportMapping(): array {
+		return [
+			"members"           => [$this, "importMembers"],
+			"banlist"           => [$this, "importBanlist"],
+			"alts"              => [$this, "importAlts"],
+			"auctions"          => [$this, "importAuctions"],
+			"banlist"           => [$this, "importBanlist"],
+			"cityCloak"         => [$this, "importCloak"],
+			"commentCategories" => [$this, "importCommentCategories"],
+			"comments"          => [$this, "importComments"],
+			"links"             => [$this, "importLinks"],
+			"news"              => [$this, "importNews"],
+			"notes"             => [$this, "importNotes"],
+			"polls"             => [$this, "importPolls"],
+			"quotes"            => [$this, "importQuotes"],
+			"raffleBonus"       => [$this, "importRaffleBonus"],
+			"raidBlocks"        => [$this, "importRaidBlocks"],
+			"raids"             => [$this, "importRaids"],
+			"raidPoints"        => [$this, "importRaidPoints"],
+			"raidPointsLog"     => [$this, "importRaidPointsLog"],
+			"timers"            => [$this, "importTimers"],
+			"trackedCharacters" => [$this, "importTrackedUsers"],
+		];
 	}
 
 	protected function parseRankMapping(string $input): array {
@@ -898,5 +884,75 @@ class ImportController {
 		}
 		$this->db->commit();
 		$this->logger->log("INFO", "All raid blocks imported");
+	}
+
+	public function importCommentCategories(array $categories, array $rankMap): void {
+		$this->logger->log("INFO", "Importing " . count($categories) . " comment categories");
+		$this->db->beginTransaction();
+		try {
+			$this->logger->log("INFO", "Deleting all user-managed comment categories");
+			$this->db->exec("DELETE FROM `<table:comment_categories>` WHERE user_managed IS TRUE");
+			foreach ($categories as $category) {
+				$oldEntry = $this->commentController->getCategory($category->name);
+				$entry = new CommentCategory();
+				$entry->name = $category->name;
+				$entry->created_by = $this->characterToName($category->createdBy ??null) ?? $this->chatBot->vars["name"];
+				$entry->created_at = $category->createdAt ?? time();
+				$entry->min_al_read = $this->getMappedRank($rankMap, $category->minRankToRead) ?? "mod";
+				$entry->min_al_write = $this->getMappedRank($rankMap, $category->minRankToWrite) ?? "admin";
+				$entry->user_managed = isset($oldEntry) ? $oldEntry->user_managed : !($category->systemEntry ?? false);
+				if (isset($oldEntry)) {
+					$this->db->update("<table:comment_categories>", "name", $entry);
+				} else {
+					$this->db->insert("<table:comment_categories>", $entry);
+				}
+			}
+		} catch (SQLException $e) {
+			$this->logger->log("ERROR", $e->getMessage());
+			$this->logger->log("INFO", "Rolling back changes");
+			$this->db->rollback();
+			return;
+		}
+		$this->db->commit();
+		$this->logger->log("INFO", "All comment categories imported");
+	}
+
+	public function importComments(array $comments): void {
+		$this->logger->log("INFO", "Importing " . count($comments) . " comment(s)");
+		$this->db->beginTransaction();
+		try {
+			$this->logger->log("INFO", "Deleting all comments");
+			$this->db->exec("DELETE FROM `<table:comments>`");
+			foreach ($comments as $comment) {
+				$name = $this->characterToName($comment->targetCharacter);
+				if (!isset($name)) {
+					continue;
+				}
+				$entry = new Comment();
+				$entry->comment = $comment->comment;
+				$entry->character = $name;
+				$entry->created_by = $this->characterToName($comment->createdBy ??null) ?? $this->chatBot->vars["name"];
+				$entry->created_at = $comment->createdAt ?? time();
+				$entry->category = $comment->category ?? "admin";
+				if ($this->commentController->getCategory($entry->category) === null) {
+					$cat = new CommentCategory();
+					$cat->name = $entry->category;
+					$cat->created_by = $this->chatBot->vars["name"];
+					$cat->created_at = time();
+					$cat->min_al_read = "mod";
+					$cat->min_al_write = "admin";
+					$cat->user_managed = true;
+					$this->db->insert("<table:comment_categories>", $cat);
+				}
+				$this->db->insert("<table:comments>", $entry);
+			}
+		} catch (SQLException $e) {
+			$this->logger->log("ERROR", $e->getMessage());
+			$this->logger->log("INFO", "Rolling back changes");
+			$this->db->rollback();
+			return;
+		}
+		$this->db->commit();
+		$this->logger->log("INFO", "All comments imported");
 	}
 }

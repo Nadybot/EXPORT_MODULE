@@ -22,6 +22,18 @@
 				"$ref": "#/definitions/ban"
 			}
 		},
+		"commentCategories": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/commentCategory"
+			}
+		},
+		"comments": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/comment"
+			}
+		},
 		"cityCloak": {
 			"type": "array",
 			"items": {
@@ -228,6 +240,66 @@
 				"time": {
 					"$ref": "#/definitions/timestamp",
 					"description": "When did the event happen?"
+				}
+			}
+		},
+		"commentCategory": {
+			"type": "object",
+			"required": [
+				"name"
+			],
+			"properties": {
+				"name": {
+					"type": "string",
+					"description": "The name of this category"
+				},
+				"createdBy": {
+					"$ref": "#/definitions/character",
+					"description": "The character who created the category"
+				},
+				"createdAt": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When was the category created?"
+				},
+				"systemEntry": {
+					"type": "boolean",
+					"description": "If set, this denounces a system-entry. What that is, is up to  the implementation, but it usually means it's locked, cannot be deleted, etc."
+				},
+				"minRankToRead": {
+					"type": "string",
+					"description": "The minimum rank required to read comments in this category"
+				},
+				"minRankToWrite": {
+					"type": "string",
+					"description": "The minimum rank required to crete or delete comments in this category"
+				}
+			}
+		},
+		"comment": {
+			"type": "object",
+			"required": [
+				"targetCharacter", "comment"
+			],
+			"properties": {
+				"comment": {
+					"type": "string",
+					"description": "The actual comment about the character"
+				},
+				"targetCharacter": {
+					"$ref": "#/definitions/character",
+					"description": "The character who this comment is about"
+				},
+				"createdBy": {
+					"$ref": "#/definitions/character",
+					"description": "The character who created the comment"
+				},
+				"createdAt": {
+					"$ref": "#/definitions/timestamp",
+					"description": "When was the comment created?"
+				},
+				"category": {
+					"type": "string",
+					"description": "If set, this specifies the category of the comment (ban, raid, admin, reputation, etc.). This requires that the category is also specified accordingly."
 				}
 			}
 		},
