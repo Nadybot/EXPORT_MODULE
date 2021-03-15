@@ -3,6 +3,7 @@
 	"$schema": "http://json-schema.org/draft-07/schema#",
 	"description": "The movable Anarchy Online bot data",
 	"type": "object",
+	"additionalProperties": false,
 	"properties": {
 		"alts": {
 			"type": "array",
@@ -56,6 +57,12 @@
 			"type": "array",
 			"items": {
 				"$ref": "#/definitions/news"
+			}
+		},
+		"notes": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/note"
 			}
 		},
 		"polls": {
@@ -117,6 +124,7 @@
 		"altMain": {
 			"type": "object",
 			"required": ["main", "alts"],
+			"additionalProperties": false,
 			"properties": {
 				"main": {
 					"$ref": "#/definitions/character",
@@ -133,6 +141,7 @@
 		"altChar": {
 			"type": "object",
 			"required": ["alt"],
+			"additionalProperties": false,
 			"properties": {
 				"alt": {
 					"$ref": "#/definitions/character",
@@ -157,6 +166,7 @@
 			"required": [
 				"item"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"raidId": {
 					"type": "integer",
@@ -196,6 +206,7 @@
 		"ban": {
 			"type": "object",
 			"required": ["character"],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -224,6 +235,7 @@
 			"required": [
 				"cloakOn", "time"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -248,6 +260,7 @@
 			"required": [
 				"name"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"name": {
 					"type": "string",
@@ -280,6 +293,7 @@
 			"required": [
 				"targetCharacter", "comment"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"comment": {
 					"type": "string",
@@ -306,6 +320,7 @@
 		"link": {
 			"type": "object",
 			"required": ["url"],
+			"additionalProperties": false,
 			"properties": {
 				"createdBy": {
 					"$ref": "#/definitions/character",
@@ -330,6 +345,7 @@
 			"required": [
 				"character", "rank"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -364,6 +380,7 @@
 		"news": {
 			"type": "object",
 			"required": ["news"],
+			"additionalProperties": false,
 			"properties": {
 				"author": {
 					"$ref": "#/definitions/character",
@@ -396,6 +413,7 @@
 		"newsConfirmation": {
 			"type": "object",
 			"required": [ "character" ],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -410,6 +428,7 @@
 		"note": {
 			"type": "object",
 			"required": [ "text", "owner" ],
+			"additionalProperties": false,
 			"properties": {
 				"owner": {
 					"$ref": "#/definitions/character",
@@ -426,6 +445,11 @@
 				"creationTime": {
 					"$ref": "#/definitions/timestamp",
 					"description": "Timestamp of when the note was created"
+				},
+				"remind": {
+					"type": "string",
+					"enum": ["all", "author"],
+					"description": "If set, remind either all of the owner's alts or only the author about the note"
 				}
 			}
 		},
@@ -434,6 +458,7 @@
 			"required": [
 				"question"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"author": {
 					"$ref": "#/definitions/character",
@@ -468,6 +493,7 @@
 			"required": [
 				"answer"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"answer": {
 					"type": "string",
@@ -484,6 +510,7 @@
 		"vote": {
 			"type": "object",
 			"required": [ ],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -498,6 +525,7 @@
 		"quote": {
 			"type": "object",
 			"required": [ "quote" ],
+			"additionalProperties": false,
 			"properties": {
 				"quote": {
 					"type": "string",
@@ -520,6 +548,7 @@
 		"raid": {
 			"type": "object",
 			"required": [ ],
+			"additionalProperties": false,
 			"properties": {
 				"raidId": {
 					"type": "integer",
@@ -572,6 +601,7 @@
 				{ "required": [ "time", "raidAnnounceInterval" ] },
 				{ "required": [ "time", "raidSecondsPerPoint" ] }
 			],
+			"additionalProperties": false,
 			"properties": {
 				"time": {
 					"$ref": "#/definitions/timestamp",
@@ -600,6 +630,7 @@
 		"raider": {
 			"type": "object",
 			"required": [ "character" ],
+			"additionalProperties": false,
 			"properties": {
 				"joinTime": {
 					"$ref": "#/definitions/timestamp",
@@ -618,6 +649,7 @@
 		"raidPointEntry": {
 			"type": "object",
 			"required": ["character", "raidPoints"],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -632,6 +664,7 @@
 		"raidPointLog": {
 			"type": "object",
 			"required": [ "character", "raidPoints" ],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -673,6 +706,7 @@
 			"required": [
 				"endTime"
 			],
+			"additionalProperties": false,
 			"properties": {
 				"startTime": {
 					"$ref": "#/definitions/timestamp",
@@ -713,6 +747,7 @@
 		"alert": {
 			"type": "object",
 			"required": ["time"],
+			"additionalProperties": false,
 			"properties": {
 				"time": {
 					"$ref": "#/definitions/timestamp",
@@ -727,6 +762,7 @@
 		"trackedCharacter": {
 			"type": "object",
 			"required": ["character"],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -751,6 +787,7 @@
 		"trackerEvent": {
 			"type": "object",
 			"required": ["time", "event"],
+			"additionalProperties": false,
 			"properties": {
 				"time": {
 					"$ref": "#/definitions/timestamp",
@@ -765,6 +802,7 @@
 		"raffleBonus": {
 			"type": "object",
 			"required": [ "character", "raffleBonus" ],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -779,6 +817,7 @@
 		"raidBlock": {
 			"type": "object",
 			"required": ["character", "blockedFrom"],
+			"additionalProperties": false,
 			"properties": {
 				"character": {
 					"$ref": "#/definitions/character",
@@ -832,6 +871,7 @@
 					"required": [ "id" ]
 				}
 			],
+			"additionalProperties": false,
 			"properties": {
 				"name": {
 					"$ref": "#/definitions/characterName",
