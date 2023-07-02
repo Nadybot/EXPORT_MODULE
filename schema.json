@@ -41,6 +41,12 @@
 				"$ref": "#/definitions/cloakEntry"
 			}
 		},
+		"events": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/event"
+			}
+		},
 		"links": {
 			"type": "array",
 			"items": {
@@ -63,6 +69,12 @@
 			"type": "array",
 			"items": {
 				"$ref": "#/definitions/note"
+			}
+		},
+		"orgNotes": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/orgNote"
 			}
 		},
 		"polls": {
@@ -461,6 +473,29 @@
 				}
 			}
 		},
+		"orgNote": {
+			"type": "object",
+			"required": [ "text" ],
+			"additionalProperties": false,
+			"properties": {
+				"author": {
+					"$ref": "#/definitions/character",
+					"description": "The character who posted the note"
+				},
+				"creationTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Timestamp of when the note was created"
+				},
+				"text": {
+					"type": "string",
+					"description": "The text of the note"
+				},
+				"uuid": {
+					"$ref": "#/definitions/uuid",
+					"description": "The unique itentifier for this org note"
+				}
+			}
+		},
 		"poll": {
 			"type": "object",
 			"required": [
@@ -764,6 +799,40 @@
 				"message": {
 					"type": "string",
 					"description": "Message to show when this alert is due"
+				}
+			}
+		},
+		"event": {
+			"type": "object",
+			"required": ["name"],
+			"additionalProperties": false,
+			"properties": {
+				"createdBy": {
+					"$ref": "#/definitions/character",
+					"description": "Character who created this event"
+				},
+				"creationTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when this event was created"
+				},
+				"startTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "Time when this event starts"
+				},
+				"name": {
+					"type": "string",
+					"description": "Name by which the event is known"
+				},
+				"description": {
+					"type": "string",
+					"description": "Description, what the event is about"
+				},
+				"attendees": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/character"
+					},
+					"description": "List of all attending characters"
 				}
 			}
 		},
