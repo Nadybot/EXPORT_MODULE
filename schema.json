@@ -374,6 +374,10 @@
 				"receiveMassInvites": {
 					"type": "boolean",
 					"description": "Does the character want to receive mass invites?"
+				},
+				"joinedTime": {
+					"$ref": "#/definitions/timestamp",
+					"description": "The unix timestamp when this character was made a member of the bot"
 				}
 			}
 		},
@@ -389,6 +393,10 @@
 				"news": {
 					"type": "string",
 					"description": "The news text itself"
+				},
+				"uuid": {
+					"$ref": "#/definitions/uuid",
+					"description": "The unique identifier of this news entry"
 				},
 				"addedTime": {
 					"$ref": "#/definitions/timestamp",
@@ -887,6 +895,12 @@
 			"type": "integer",
 			"minimum": 0,
 			"maximum": 2147483647
+		},
+		"uuid": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+			"minLength": 36,
+			"maxLength": 36
 		}
 	}
 }
